@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- HTML metadata for character set and responsive design -->
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AM Modulation Simulator</title>
+  
+  <!-- Bootstrap CSS for styling -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  
+  <!-- Chart.js library for generating charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js Zoom Plugin for zooming and panning -->
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@1.0.0"></script>
+</head>
+<body class="container my-4">
+  <h1>AM Modulation Simulator</h1>
+
+  <!-- Input Form for user to set signal parameters -->
+  <div class="row mb-3">
+    <div class="col">
+      <label>Amplitude Signal:</label>
+      <input type="number" id="amplitudeSignal" class="form-control" value="1"> <!-- Input for modulating signal amplitude -->
+    </div>
+    <div class="col">
+      <label>Frequency Signal:</label>
+      <input type="number" id="frequencySignal" class="form-control" value="10"> <!-- Input for modulating signal frequency -->
+    </div>
+    <div class="col">
+      <label>Amplitude Carrier:</label>
+      <input type="number" id="amplitudeCarrier" class="form-control" value="5"> <!-- Input for carrier signal amplitude -->
+    </div>
+    <div class="col">
+      <label>Frequency Carrier:</label>
+      <input type="number" id="frequencyCarrier" class="form-control" value="50"> <!-- Input for carrier signal frequency -->
+    </div>
+  </div>
+
+  <!-- Button to trigger signal generation -->
+  <button onclick="generateGraph()" class="btn btn-primary mb-3">Generate Signal</button>
+
+  <!-- Canvas elements for displaying the signals -->
+  <div class="row">
+    <div class="col-4">
+      <canvas id="signalCanvas"></canvas> <!-- Canvas for modulating signal -->
+    </div>
+    <div class="col-4">
+      <canvas id="carrierCanvas"></canvas> <!-- Canvas for carrier signal -->
+    </div>
+    <div class="col-4">
+      <canvas id="amCanvas"></canvas> <!-- Canvas for AM modulated signal -->
+    </div>
+  </div>
+
+  <!-- JavaScript for signal calculation and charting -->
+  <script>
+    function generateGraph() {
+      // Retrieve input values from form
+      const amplitudeSignal = parseFloat(document.getElementById('amplitudeSignal').value);
+      const frequencySignal = parseFloat(document.getElementById('frequencySignal').value);
+      const amplitudeCarrier = parseFloat(document.getElementById('amplitudeCarrier').value);
+      const frequencyCarrier = parseFloat(document.getElementById('frequencyCarrier').value);
+
+      // Generate time axis for modulating signal (100 samples at 0.01 second intervals)
+      const time = Array.from({length: 100}, (_, i) => i / 100);
+
+      // Generate modulating signal (low frequency)
+      const modulatingSignal = time.map(t => amplitudeSignal * Math.sin(2 * Math.PI * frequencySignal * t));
+
+      // Generate time axis for carrier and AM signals (100 samples at 0.001 second intervals for higher frequency details)
+      const time_2 = Array.from({length: 100}, (_, i) => i / 1000);
+
+      // Generate carrier signal (higher frequency)
+      const carrierSignal = time_2.map(t => amplitudeCarrier * Math.sin(2 * Math.PI * frequencyCarrier * t));
+      
+      // Generate AM signal by modulating the carrier with the modulating signal
+      const amSignal = time_2.map((t, i) => (modulatingSignal[i]) * Math.sin(2 * Math.PI * frequencyCarrier * t));
+
+      // Draw each chart using the respective canvas
+      drawChart('signalCanvas', time, modulatingSignal, 'Modulating Signal');
+      drawChart('carrierCanvas', time_2, carrierSignal, 'Carrier Signal');
+      drawChart('amCanvas', time_2, amSignal, 'AM Signal');
+    }
+
+    // Function to draw chart on specified canvas
+    function drawChart(canvasId, x, y, label) {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      new Chart(ctx, {
+        type: 'line', // Line chart type
+        data: {
+          labels: x, // Time values for x-axis
+          datasets: [
+            { label: label, data: y, borderColor: 'blue', fill: false } // Data with label and style
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            title: { display: true, text: label }, // Display title of chart
+            zoom: { // Zoom and pan functionality
+              pan: { enabled: true, mode: 'xy' },
+              zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
+            }
+          },
+          scales: {
+            x: { display: false }, // Hide x-axis labels
+            y: { beginAtZero: false } // Allow dynamic y-axis scaling based on data
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
