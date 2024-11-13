@@ -62,20 +62,20 @@
       const amplitudeCarrier = parseFloat(document.getElementById('amplitudeCarrier').value);
       const frequencyCarrier = parseFloat(document.getElementById('frequencyCarrier').value);
 
-      // Generate time axis for modulating signal (100 samples at 0.01 second intervals)
-      const time = Array.from({length: 100}, (_, i) => i / 100);
+      // Generate time axis for modulating signal (100 samples at 0.001 second intervals)
+      const time = Array.from({length: 250}, (_, i) => i / 1000);
 
       // Generate modulating signal (low frequency)
       const modulatingSignal = time.map(t => amplitudeSignal * Math.sin(2 * Math.PI * frequencySignal * t));
 
       // Generate time axis for carrier and AM signals (100 samples at 0.001 second intervals for higher frequency details)
-      const time_2 = Array.from({length: 100}, (_, i) => i / 1000);
+      const time_2 = Array.from({length: 250}, (_, i) => i / 1000);
 
       // Generate carrier signal (higher frequency)
       const carrierSignal = time_2.map(t => amplitudeCarrier * Math.sin(2 * Math.PI * frequencyCarrier * t));
       
       // Generate AM signal by modulating the carrier with the modulating signal
-      const amSignal = time_2.map((t, i) => (modulatingSignal[i]) * Math.sin(2 * Math.PI * frequencyCarrier * t));
+      const amSignal = time_2.map((t, i) => (modulatingSignal[i]) * (carrierSignal[i]));
 
       // Draw each chart using the respective canvas
       drawChart('signalCanvas', time, modulatingSignal, 'Modulating Signal');
